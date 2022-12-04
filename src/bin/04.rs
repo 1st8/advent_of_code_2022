@@ -1,6 +1,6 @@
-use std::{collections::HashSet, ops::Range};
+use std::ops::Range;
 
-fn sets(input: &str) -> impl Iterator<Item = (HashSet<u32>, HashSet<u32>)> + '_ {
+fn ranges(input: &str) -> impl Iterator<Item = (Range<u32>, Range<u32>)> + '_ {
     input.trim_end_matches("\n").split("\n").map(|line| {
         let mut iter = line.split(',').map(|r| {
             let mut iter = r.split('-').map(|i| i.parse::<u32>().unwrap());
@@ -8,30 +8,31 @@ fn sets(input: &str) -> impl Iterator<Item = (HashSet<u32>, HashSet<u32>)> + '_ 
             let end = iter.next().unwrap() + 1;
             Range { start, end }
         });
-        let r1: HashSet<u32> = iter.next().unwrap().collect();
-        let r2: HashSet<u32> = iter.next().unwrap().collect();
+        let r1 = iter.next().unwrap();
+        let r2 = iter.next().unwrap();
         (r1, r2)
     })
 }
 
 pub fn part_one(input: &str) -> Option<u32> {
-    let result = sets(input)
-        .map(|(r1, r2)| {
-            if r1.is_subset(&r2) || r2.is_subset(&r1) {
-                1
-            } else {
-                0
-            }
-        })
-        .sum();
+    let mut result = 0;
+    ranges(input).for_each(|(r1, r2)| {
+        if (r1.start >= r2.start && r1.end <= r2.end) || (r2.start >= r1.start && r2.end <= r1.end)
+        {
+            result += 1;
+        }
+    });
 
     Some(result)
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
-    let result = sets(input)
-        .map(|(r1, r2)| if !r1.is_disjoint(&r2) { 1 } else { 0 })
-        .sum();
+    let mut result = 0;
+    ranges(input).for_each(|(r1, r2)| {
+        if !(r1.start >= r2.end || r2.start >= r1.end) {
+            result += 1;
+        }
+    });
 
     Some(result)
 }
