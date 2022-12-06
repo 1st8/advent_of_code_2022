@@ -1,25 +1,31 @@
-use std::collections::{HashSet, VecDeque};
+use std::collections::{hash_map::Entry, HashMap, VecDeque};
 
 fn find_uniq_sequence(input: &str, length: usize) -> Option<u32> {
-    let iter = input.chars();
+    let mut counts: HashMap<char, usize> = HashMap::new();
     let mut buffer = VecDeque::new();
-    let result = iter.enumerate().find_map(|(i, char)| {
+    let result = input.chars().enumerate().find_map(|(i, char)| {
         buffer.push_back(char);
+        counts
+            .entry(char)
+            .and_modify(|count| *count += 1)
+            .or_insert(1);
 
         if i > length - 1 {
-            buffer.pop_front();
+            let rem = buffer.pop_front().unwrap();
+            if let Entry::Occupied(o) = counts.entry(rem).and_modify(|count| *count -= 1) {
+                if *o.get() == 0 {
+                    counts.remove(&rem);
+                }
+            };
         } else {
             return None;
         }
 
-        let mut uniqs: HashSet<&char> = HashSet::new();
-        for char in buffer.iter() {
-            if !uniqs.insert(char) {
-                return None;
-            }
+        if counts.len() == length {
+            Some((i + 1) as u32)
+        } else {
+            None
         }
-
-        Some((i + 1) as u32)
     });
 
     result
