@@ -1,7 +1,7 @@
 use std::ops::Range;
 
 fn ranges(input: &str) -> impl Iterator<Item = (Range<u32>, Range<u32>)> + '_ {
-    input.trim_end_matches("\n").split("\n").map(|line| {
+    input.lines().map(|line| {
         let mut iter = line.split(',').map(|r| {
             let mut iter = r.split('-').map(|i| i.parse::<u32>().unwrap());
             let start = iter.next().unwrap();

@@ -38,7 +38,7 @@ fn get_folder_sizes(input: &str) -> HashMap<String, u32> {
 pub fn part_one(input: &str) -> Option<u32> {
     let folder_sizes = get_folder_sizes(input);
 
-    let result: u32 = folder_sizes.values().filter(|v| **v < 100000).sum();
+    let result: u32 = folder_sizes.into_values().filter(|v| *v < 100000).sum();
     Some(result)
 }
 

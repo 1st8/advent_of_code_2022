@@ -1,14 +1,14 @@
 use std::collections::VecDeque;
 
 fn split_input(input: &str) -> (&str, &str) {
-    let mut iter = input.trim_end_matches("\n").split("\n\n");
+    let mut iter = input.split("\n\n");
     let raw_state = iter.next().unwrap();
     let raw_moves = iter.next().unwrap();
     (raw_state, raw_moves)
 }
 
-fn parse_state(raw_state: &str) -> Vec<Vec<char>> {
-    let lines = raw_state.split("\n").collect::<Vec<&str>>();
+fn parse_state(raw_state: &str) -> State {
+    let lines = raw_state.lines().collect::<Vec<&str>>();
     let mut lines_rev_iter = lines.iter().rev();
     let numbers = lines_rev_iter.next().unwrap();
 
@@ -34,7 +34,7 @@ fn parse_state(raw_state: &str) -> Vec<Vec<char>> {
 
 fn parse_moves(raw_moves: &str) -> Vec<(usize, usize, usize)> {
     raw_moves
-        .split("\n")
+        .lines()
         .map(|l| {
             let mut numbers = l.split_whitespace().enumerate().filter_map(|(i, s)| {
                 if i % 2 == 1 {
@@ -52,12 +52,15 @@ fn parse_moves(raw_moves: &str) -> Vec<(usize, usize, usize)> {
         .collect()
 }
 
-fn parse_input(input: &str) -> (Vec<Vec<char>>, Vec<(usize, usize, usize)>) {
-    let (raw_state, raw_moves) = split_input(&input);
+type State = Vec<Vec<char>>;
+type Move = (usize, usize, usize);
+
+fn parse_input(input: &str) -> (State, Vec<Move>) {
+    let (raw_state, raw_moves) = split_input(input);
     (parse_state(raw_state), parse_moves(raw_moves))
 }
 
-fn apply_move(mut state: Vec<Vec<char>>, mv: (usize, usize, usize)) -> Vec<Vec<char>> {
+fn apply_move(mut state: State, mv: Move) -> State {
     let (amount, from, to) = mv;
 
     for _ in 0..amount {
@@ -69,7 +72,7 @@ fn apply_move(mut state: Vec<Vec<char>>, mv: (usize, usize, usize)) -> Vec<Vec<c
     state
 }
 
-fn apply_move2(mut state: Vec<Vec<char>>, mv: (usize, usize, usize)) -> Vec<Vec<char>> {
+fn apply_move2(mut state: State, mv: Move) -> State {
     let (amount, from, to) = mv;
 
     let from = state.get_mut(from).unwrap();

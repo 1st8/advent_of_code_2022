@@ -27,8 +27,7 @@ fn overlap<'a>((l, r): (&'a str, &'a str)) -> Vec<char> {
 pub fn part_one(input: &str) -> Option<u32> {
     Some(
         input
-            .trim_end_matches("\n")
-            .split("\n")
+            .lines()
             .map(compartments)
             .flat_map(overlap)
             .map(priority)
@@ -36,10 +35,7 @@ pub fn part_one(input: &str) -> Option<u32> {
     )
 }
 pub fn part_two(input: &str) -> Option<u32> {
-    let lines = input
-        .trim_end_matches("\n")
-        .split("\n")
-        .collect::<Vec<&str>>();
+    let lines = input.lines().collect::<Vec<&str>>();
 
     let mut sum = 0;
 

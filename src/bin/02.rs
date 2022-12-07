@@ -50,21 +50,23 @@ fn score(pair: (Signs, Signs)) -> u32 {
 }
 
 fn pairs(input: &str) -> impl Iterator<Item = (Signs, Signs)> + '_ {
-    input.trim_end_matches("\n").split("\n").map(|line| {
+    input.lines().map(|line| {
+        let mut iter = line.chars();
         (
-            Signs::new(line.chars().nth(0).unwrap()),
-            Signs::new(line.chars().nth(2).unwrap()),
+            Signs::new(iter.next().unwrap()),
+            Signs::new(iter.nth(1).unwrap()),
         )
     })
 }
 
 fn pairs2(input: &str) -> impl Iterator<Item = (Signs, Signs)> + '_ {
-    input.trim_end_matches("\n").split("\n").map(line2)
+    input.lines().map(line2)
 }
 
 fn line2(line: &str) -> (Signs, Signs) {
-    let opp = Signs::new(line.chars().nth(0).unwrap());
-    let own = match line.chars().nth(2).unwrap() {
+    let mut iter = line.chars();
+    let opp = Signs::new(iter.next().unwrap());
+    let own = match iter.nth(1).unwrap() {
         'X' => wins_over(&opp),
         'Y' => &opp,
         'Z' => loses_to(&opp),

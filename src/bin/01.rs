@@ -1,16 +1,12 @@
 use std::collections::BinaryHeap;
 
 fn block_sums(input: &str) -> impl Iterator<Item = u32> + '_ {
-    let result = input
-        .strip_suffix("\n")
-        .unwrap()
-        .split("\n\n")
-        .map(|block| {
-            block
-                .split("\n")
-                .map(|s| s.parse::<u32>().unwrap())
-                .sum::<u32>()
-        });
+    let result = input.split("\n\n").map(|block| {
+        block
+            .lines()
+            .map(|s| s.parse::<u32>().unwrap())
+            .sum::<u32>()
+    });
     result
 }
 
