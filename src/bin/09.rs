@@ -8,6 +8,17 @@ enum Move {
     Left,
 }
 
+impl Move {
+    fn apply(&self, pos: &mut (i32, i32)) {
+        match &self {
+            Move::Up => pos.1 -= 1,
+            Move::Right => pos.0 += 1,
+            Move::Down => pos.1 += 1,
+            Move::Left => pos.0 -= 1,
+        };
+    }
+}
+
 fn moves(input: &str) -> Vec<Move> {
     input
         .lines()
@@ -33,25 +44,51 @@ pub fn part_one(input: &str) -> Option<usize> {
     visited.insert(tail);
     moves(input).iter().for_each(|mov| {
         let old_head = head;
-        match mov {
-            Move::Up => head = (head.0, head.1 - 1),
-            Move::Right => head = (head.0 + 1, head.1),
-            Move::Down => head = (head.0, head.1 + 1),
-            Move::Left => head = (head.0 - 1, head.1),
-        };
+        mov.apply(&mut head);
 
         let vec = (tail.0 - head.0, tail.1 - head.1);
         if vec.0.abs() > 1 || vec.1.abs() > 1 {
             tail = old_head;
             visited.insert(tail);
-
         }
     });
     Some(visited.len())
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
-    None
+pub fn part_two(input: &str) -> Option<usize> {
+    let length = 10;
+    let mut knots = vec![(0, 0); length];
+    let mut visited: HashSet<(i32, i32)> = HashSet::new();
+    visited.insert((0, 0));
+    moves(input).iter().for_each(|mov| {
+        let mut iter = knots.iter_mut();
+        let head = iter.next().unwrap();
+        mov.apply(head);
+
+        let mut prev = head;
+        iter.for_each(|knot| {
+            let vec: (i32, i32) = (knot.0 - prev.0, knot.1 - prev.1);
+
+            if vec.0.abs() > 1 || vec.1.abs() > 1 {
+                match vec.0 {
+                    n if n < 0 => Move::Right.apply(knot),
+                    n if n > 0 => Move::Left.apply(knot),
+                    _ => (),
+                }
+
+                match vec.1 {
+                    n if n < 0 => Move::Down.apply(knot),
+                    n if n > 0 => Move::Up.apply(knot),
+                    _ => (),
+                }
+            }
+
+            prev = knot;
+        });
+
+        visited.insert(knots[9]);
+    });
+    Some(visited.len())
 }
 
 fn main() {
@@ -65,9 +102,26 @@ mod tests {
     use super::*;
 
     #[test]
+    fn test_moves() {
+        let input = "R 2\nU 1\nL 2\nD 2";
+        assert_eq!(
+            moves(input),
+            [
+                Move::Right,
+                Move::Right,
+                Move::Up,
+                Move::Left,
+                Move::Left,
+                Move::Down,
+                Move::Down
+            ]
+        );
+    }
+
+    #[test]
     fn test_u_turn() {
         let input = "R 2\nU 1\nL 2";
-        assert_eq!(part_one(&input), Some(2));
+        assert_eq!(part_one(input), Some(2));
     }
 
     #[test]
@@ -78,7 +132,39 @@ mod tests {
 
     #[test]
     fn test_part_two() {
-        let input = advent_of_code::read_file("examples", 9);
-        assert_eq!(part_two(&input), None);
+        let input = "R 5
+U 8
+L 8
+D 3
+R 17
+D 10
+L 25
+U 20
+";
+        assert_eq!(part_two(input), Some(36));
+    }
+
+    #[test]
+    fn test_part_two_3() {
+        let input = "R 10";
+        assert_eq!(part_two(input), Some(2));
+    }
+
+    #[test]
+    fn test_part_two_l() {
+        let input = "L 10";
+        assert_eq!(part_two(input), Some(2));
+    }
+
+    #[test]
+    fn test_part_two_d() {
+        let input = "D 10";
+        assert_eq!(part_two(input), Some(2));
+    }
+
+    #[test]
+    fn test_part_two_u() {
+        let input = "U 10";
+        assert_eq!(part_two(input), Some(2));
     }
 }
