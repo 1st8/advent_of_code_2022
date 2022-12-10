@@ -11,7 +11,18 @@ pub fn part_one(input: &str) -> Option<i32> {
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
-    None
+    register_iter(input).enumerate().for_each(|(i, x)| {
+        if (x..=(x + 2)).contains(&(((i as i32) % 40) + 1)) {
+            print!("█");
+        } else {
+            print!(" ");
+        };
+        if i % 40 == 39 {
+            println!();
+        }
+    });
+
+    Some(1)
 }
 
 fn main() {
@@ -53,11 +64,5 @@ mod tests {
     fn test_part_one() {
         let input = advent_of_code::read_file("examples", 10);
         assert_eq!(part_one(&input), Some(13140));
-    }
-
-    #[test]
-    fn test_part_two() {
-        let input = advent_of_code::read_file("examples", 10);
-        assert_eq!(part_two(&input), None);
     }
 }
