@@ -3,11 +3,11 @@ use std::collections::{HashMap, VecDeque};
 #[derive(Debug)]
 enum Value {
     Old,
-    Const(i32),
+    Const(u64),
 }
 
 impl Value {
-    fn const_or(&self, old: i32) -> i32 {
+    fn const_or(&self, old: u64) -> u64 {
         match self {
             Self::Old => old,
             Self::Const(i) => *i,
@@ -29,11 +29,11 @@ impl From<&str> for Value {
 struct Operation {
     a: Value,
     b: Value,
-    op: fn(i32, i32) -> i32,
+    op: fn(u64, u64) -> u64,
 }
 
 impl Operation {
-    fn call(&self, old: i32) -> i32 {
+    fn call(&self, old: u64) -> u64 {
         (self.op)(self.a.const_or(old), self.b.const_or(old))
     }
 }
@@ -62,14 +62,14 @@ impl From<&str> for Operation {
 #[derive(Debug)]
 struct Monkey {
     operation: Operation,
-    items: VecDeque<i32>,
-    modulo: i32,
+    items: VecDeque<u64>,
+    modulo: u64,
     true_index: usize,
     false_index: usize,
 }
 
 impl Monkey {
-    fn inspect(&self, item: i32) -> i32 {
+    fn inspect(&self, item: u64) -> u64 {
         self.operation.call(item)
     }
 }
@@ -106,11 +106,11 @@ impl From<&str> for Monkey {
     }
 }
 
-pub fn part_one(input: &str) -> Option<u32> {
+pub fn part_one(input: &str) -> Option<u64> {
     let blocks = input.split("\n\n");
     let mut monkeys = blocks.map(Monkey::from).collect::<Vec<_>>();
-    let mut inboxes: HashMap<usize, VecDeque<i32>> = HashMap::new();
-    let mut inspections: HashMap<usize, u32> = HashMap::new();
+    let mut inboxes: HashMap<usize, VecDeque<u64>> = HashMap::new();
+    let mut inspections: HashMap<usize, u64> = HashMap::new();
 
     for _round in 0..20 {
         monkeys = monkeys
@@ -148,8 +148,47 @@ pub fn part_one(input: &str) -> Option<u32> {
     Some(result)
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
-    None
+pub fn part_two(input: &str) -> Option<u64> {
+    let blocks = input.split("\n\n");
+    let mut monkeys = blocks.map(Monkey::from).collect::<Vec<_>>();
+    let mut inboxes: HashMap<usize, VecDeque<u64>> = HashMap::new();
+    let mut inspections: HashMap<usize, u64> = HashMap::new();
+    let product: u64 = monkeys.iter().map(|m| m.modulo).product();
+
+    for _round in 0..10000 {
+        monkeys = monkeys
+            .into_iter()
+            .enumerate()
+            .map(|(i, mut monkey)| {
+                if let Some(inbox) = inboxes.get_mut(&i) {
+                    monkey.items.append(inbox);
+                }
+
+                while let Some(item) = monkey.items.pop_front() {
+                    inspections.entry(i).and_modify(|v| *v += 1).or_insert(1);
+                    let worry_level = monkey.inspect(item);
+                    let worry_level = worry_level % product;
+                    let throw_to = if worry_level % monkey.modulo == 0 {
+                        monkey.true_index
+                    } else {
+                        monkey.false_index
+                    };
+                    inboxes
+                        .entry(throw_to)
+                        .and_modify(|v| v.push_back(worry_level))
+                        .or_insert_with(|| VecDeque::from([worry_level]));
+                }
+
+                monkey
+            })
+            .collect::<Vec<_>>();
+    }
+
+    let mut inspection_counts = inspections.into_values().collect::<Vec<_>>();
+    inspection_counts.sort_unstable_by_key(|w| std::cmp::Reverse(*w));
+    let result = inspection_counts.first().unwrap() * inspection_counts.get(1).unwrap();
+
+    Some(result)
 }
 
 fn main() {
@@ -185,6 +224,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let input = advent_of_code::read_file("examples", 11);
-        assert_eq!(part_two(&input), None);
+        assert_eq!(part_two(&input), Some(2713310158));
     }
 }
