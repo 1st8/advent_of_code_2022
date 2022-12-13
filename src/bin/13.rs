@@ -1,5 +1,5 @@
 use serde_json::{json, Result, Value};
-use std::cmp::Ordering;
+use std::cmp::Ordering::{self, Equal, Greater, Less};
 use std::iter::zip;
 
 fn pairs(input: &str) -> impl Iterator<Item = (Value, Value)> + '_ {
@@ -12,49 +12,48 @@ fn pairs(input: &str) -> impl Iterator<Item = (Value, Value)> + '_ {
     })
 }
 
-fn compare(a: Value, b: Value) -> Option<bool> {
+fn compare(a: &Value, b: &Value) -> Ordering {
     match (a, b) {
-        (Value::Number(a), Value::Number(b)) => {
-            if a == b {
-                None
-            } else {
-                Some(a.as_i64() < b.as_i64())
-            }
-        }
+        (Value::Number(a), Value::Number(b)) => a.as_i64().cmp(&b.as_i64()),
         (Value::Array(a), Value::Array(b)) => {
             let len_cmp = a.len().cmp(&b.len());
             let a_iter = a.into_iter();
             let b_iter = b.into_iter();
-            if let Some(result) = zip(a_iter, b_iter).find_map(|(a, b)| compare(a, b)) {
-                Some(result)
-            } else if len_cmp == Ordering::Equal {
-                None
+            if let Some(result) = zip(a_iter, b_iter).find_map(|(a, b)| {
+                let result = compare(&a, &b);
+                if result == Equal {
+                    None
+                } else {
+                    Some(result)
+                }
+            }) {
+                result
             } else {
-                Some(len_cmp == Ordering::Less)
+                len_cmp
             }
         }
-        (Value::Number(a), Value::Array(b)) => compare(json!([a]), Value::Array(b)),
-        (Value::Array(a), Value::Number(b)) => compare(Value::Array(a), json!([b])),
-        _ => None,
+        (Value::Number(a), Value::Array(_)) => compare(&json!([a]), &b),
+        (Value::Array(_), Value::Number(b)) => compare(&a, &json!([b])),
+        _ => panic!(),
     }
 }
 
 pub fn part_one(input: &str) -> Option<usize> {
     let sum: usize = pairs(input)
         .enumerate()
-        .map(|(i, (a, b))| {
-            if let Some(true) = compare(a, b) {
-                i + 1
-            } else {
-                0
-            }
-        })
+        .map(|(i, (a, b))| if compare(&a, &b) == Less { i + 1 } else { 0 })
         .sum();
     Some(sum)
 }
 
-pub fn part_two(input: &str) -> Option<u32> {
-    None
+pub fn part_two(input: &str) -> Option<usize> {
+    let mut packets = pairs(input).flat_map(|(a, b)| [a, b]).collect::<Vec<_>>();
+    packets.push(json!([[2]]));
+    packets.push(json!([[6]]));
+    packets.sort_by(compare);
+    let index1 = packets.iter().position(|p| *p == json!([[2]])).unwrap() + 1;
+    let index2 = packets.iter().position(|p| *p == json!([[6]])).unwrap() + 1;
+    Some(index1 * index2)
 }
 
 fn main() {
@@ -70,15 +69,14 @@ mod tests {
 
     #[test]
     fn test_compare() {
-        assert_eq!(compare(json!(0), json!(1)), Some(true));
-        assert_eq!(compare(json!([0]), json!([1])), Some(true));
-        assert_eq!(compare(json!([]), json!([1])), Some(true));
-        assert_eq!(compare(json!([0]), json!([])), Some(false));
-        assert_eq!(compare(json!([2, 3, 4]), json!(4)), Some(true));
-        assert_eq!(
-            compare(json!([[1], [2, 3, 4]]), json!([[1], 4])),
-            Some(true)
-        );
+        assert_eq!(compare(&json!(0), &json!(1)), Less);
+        assert_eq!(compare(&json!([0]), &json!([1])), Less);
+        assert_eq!(compare(&json!([]), &json!([1])), Less);
+        assert_eq!(compare(&json!([0]), &json!([])), Greater);
+        assert_eq!(compare(&json!([2, 3, 4]), &json!(4)), Less);
+        assert_eq!(compare(&json!([[1], [2, 3, 4]]), &json!([[1], 4])), Less);
+        assert_eq!(compare(&json!(0), &json!(0)), Equal);
+        assert_eq!(compare(&json!([]), &json!([])), Equal);
     }
 
     #[test]
@@ -90,6 +88,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let input = advent_of_code::read_file("examples", 13);
-        assert_eq!(part_two(&input), None);
+        assert_eq!(part_two(&input), Some(140));
     }
 }
