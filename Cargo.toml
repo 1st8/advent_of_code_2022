@@ -10,3 +10,4 @@ publish = false
 [dependencies]
 pathfinding = "4.0.0"
 pico-args = "0.5.0"
+serde_json = "1.0.89"
