@@ -1,5 +1,5 @@
-use serde_json::{json, Result, Value};
-use std::cmp::Ordering::{self, Equal, Greater, Less};
+use serde_json::{json, Value};
+use std::cmp::Ordering::{self, Equal, Less};
 use std::iter::zip;
 
 fn pairs(input: &str) -> impl Iterator<Item = (Value, Value)> + '_ {
@@ -17,10 +17,10 @@ fn compare(a: &Value, b: &Value) -> Ordering {
         (Value::Number(a), Value::Number(b)) => a.as_i64().cmp(&b.as_i64()),
         (Value::Array(a), Value::Array(b)) => {
             let len_cmp = a.len().cmp(&b.len());
-            let a_iter = a.into_iter();
-            let b_iter = b.into_iter();
+            let a_iter = a.iter();
+            let b_iter = b.iter();
             if let Some(result) = zip(a_iter, b_iter).find_map(|(a, b)| {
-                let result = compare(&a, &b);
+                let result = compare(a, b);
                 if result == Equal {
                     None
                 } else {
@@ -32,8 +32,8 @@ fn compare(a: &Value, b: &Value) -> Ordering {
                 len_cmp
             }
         }
-        (Value::Number(a), Value::Array(_)) => compare(&json!([a]), &b),
-        (Value::Array(_), Value::Number(b)) => compare(&a, &json!([b])),
+        (Value::Number(a), Value::Array(_)) => compare(&json!([a]), b),
+        (Value::Array(_), Value::Number(b)) => compare(a, &json!([b])),
         _ => panic!(),
     }
 }
@@ -66,6 +66,7 @@ fn main() {
 mod tests {
 
     use super::*;
+    use std::cmp::Ordering::{Equal, Greater, Less};
 
     #[test]
     fn test_compare() {

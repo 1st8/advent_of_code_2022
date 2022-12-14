@@ -9,7 +9,7 @@ enum Block {
 struct Pos(u32, u32);
 impl From<&str> for Pos {
     fn from(coords: &str) -> Pos {
-        if let [x, y] = &coords.split(",").collect::<Vec<&str>>()[..] {
+        if let [x, y] = &coords.split(',').collect::<Vec<&str>>()[..] {
             Pos(x.parse().unwrap(), y.parse().unwrap())
         } else {
             panic!()
@@ -124,7 +124,7 @@ pub fn part_one(input: &str) -> Option<u32> {
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
-    let (mut cave, rx, ry) = parse(input);
+    let (mut cave, _rx, ry) = parse(input);
     let mut sand_count = 0;
 
     'outer: loop {
