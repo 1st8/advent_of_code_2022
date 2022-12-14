@@ -124,7 +124,38 @@ pub fn part_one(input: &str) -> Option<u32> {
 }
 
 pub fn part_two(input: &str) -> Option<u32> {
-    None
+    let (mut cave, rx, ry) = parse(input);
+    let mut sand_count = 0;
+
+    'outer: loop {
+        sand_count += 1;
+        let mut pos = Pos(500, 0);
+        if cave.contains_key(&pos) {
+            break 'outer;
+        }
+        'inner: loop {
+            if pos.1 == ry.end() + 1 {
+                cave.insert(pos, Block::Sand);
+                break 'inner;
+            }
+
+            if cave.contains_key(&pos.down()) {
+                if cave.contains_key(&pos.down_left()) {
+                    if cave.contains_key(&pos.down_right()) {
+                        cave.insert(pos, Block::Sand);
+                        break 'inner;
+                    } else {
+                        pos = pos.down_right();
+                    }
+                } else {
+                    pos = pos.down_left();
+                }
+            } else {
+                pos = pos.down();
+            }
+        }
+    }
+    Some(sand_count - 1)
 }
 
 fn main() {
@@ -164,6 +195,6 @@ mod tests {
     #[test]
     fn test_part_two() {
         let input = advent_of_code::read_file("examples", 14);
-        assert_eq!(part_two(&input), None);
+        assert_eq!(part_two(&input), Some(93));
     }
 }
