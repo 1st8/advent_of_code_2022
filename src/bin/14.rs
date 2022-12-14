@@ -93,6 +93,22 @@ fn parse(
     (result, min_x..=max_x, min_y..=max_y)
 }
 
+fn advance(pos: &Pos, cave: &HashMap<Pos, Block>) -> Option<Pos> {
+    if cave.contains_key(&pos.down()) {
+        if cave.contains_key(&pos.down_left()) {
+            if cave.contains_key(&pos.down_right()) {
+                None
+            } else {
+                Some(pos.down_right())
+            }
+        } else {
+            Some(pos.down_left())
+        }
+    } else {
+        Some(pos.down())
+    }
+}
+
 pub fn part_one(input: &str) -> Option<u32> {
     let (mut cave, rx, ry) = parse(input);
     let mut sand_count = 0;
@@ -104,19 +120,12 @@ pub fn part_one(input: &str) -> Option<u32> {
             if !rx.contains(&pos.0) || !ry.contains(&pos.1) {
                 break 'outer;
             };
-            if cave.contains_key(&pos.down()) {
-                if cave.contains_key(&pos.down_left()) {
-                    if cave.contains_key(&pos.down_right()) {
-                        cave.insert(pos, Block::Sand);
-                        break 'inner;
-                    } else {
-                        pos = pos.down_right();
-                    }
-                } else {
-                    pos = pos.down_left();
-                }
+
+            if let Some(new_pos) = advance(&pos, &cave) {
+                pos = new_pos
             } else {
-                pos = pos.down();
+                cave.insert(pos, Block::Sand);
+                break 'inner;
             }
         }
     }
@@ -139,19 +148,11 @@ pub fn part_two(input: &str) -> Option<u32> {
                 break 'inner;
             }
 
-            if cave.contains_key(&pos.down()) {
-                if cave.contains_key(&pos.down_left()) {
-                    if cave.contains_key(&pos.down_right()) {
-                        cave.insert(pos, Block::Sand);
-                        break 'inner;
-                    } else {
-                        pos = pos.down_right();
-                    }
-                } else {
-                    pos = pos.down_left();
-                }
+            if let Some(new_pos) = advance(&pos, &cave) {
+                pos = new_pos
             } else {
-                pos = pos.down();
+                cave.insert(pos, Block::Sand);
+                break 'inner;
             }
         }
     }
