@@ -19,7 +19,7 @@ impl From<char> for Block {
     }
 }
 
-#[derive(Debug, Copy, Clone, PartialOrd, PartialEq, Ord, Eq)]
+#[derive(Debug, Copy, Clone)]
 enum Direction {
     Right,
     Down,
