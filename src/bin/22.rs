@@ -79,7 +79,7 @@ fn find_start(map: &Array2D<Block>) -> (usize, usize) {
 
 fn parse_actions(actions_input: &str) -> Vec<Action> {
     let mut actions = vec![];
-    let re = Regex::new(r"(?P<dir>[RDLU])?(?P<dist>\d+)").unwrap();
+    let re = Regex::new(r"(?P<dir>[RL])?(?P<dist>\d+)").unwrap();
     for caps in re.captures_iter(actions_input) {
         if let Some(dir) = caps.name("dir") {
             actions.push(Action::Rotate(Direction::from(dir.as_str())));
